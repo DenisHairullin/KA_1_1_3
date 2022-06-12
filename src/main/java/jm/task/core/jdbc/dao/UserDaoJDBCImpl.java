@@ -11,63 +11,70 @@ public class UserDaoJDBCImpl implements UserDao {
     private final Connection connection;
 
     public UserDaoJDBCImpl() {
-        try {
-            connection = Util.getConnection();
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
+        connection = Util.getConnection();
     }
 
+    @Override
     public void createUsersTable() {
-        try (ResultSet rs = connection.getMetaData().getTables(connection.getCatalog(), null, "users", null);
-                Statement st = connection.createStatement()) {
-
-            if (!rs.next()) {
-                st.execute("CREATE TABLE users "
+        try (Statement st = connection.createStatement()) {
+            st.execute("CREATE TABLE users "
                     + "(id BIGINT AUTO_INCREMENT PRIMARY KEY, "
                     + "name VARCHAR(60), "
                     + "lastName VARCHAR(60), "
                     + "age TINYINT)");
-            }
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            e.printStackTrace();
         }
     }
 
+    @Override
     public void dropUsersTable() {
-        try (ResultSet rs = connection.getMetaData().getTables(connection.getCatalog(), null, "users", null);
-                Statement sta = connection.createStatement()) {
-
-            if (rs.next()) {
-                sta.execute("DROP TABLE users");
-            }
+        try (Statement sta = connection.createStatement()) {
+            sta.execute("DROP TABLE users");
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            e.printStackTrace();
         }
     }
 
+    @Override
     public void saveUser(String name, String lastName, byte age) {
         try (PreparedStatement st = connection.prepareStatement("INSERT INTO users " +
                 "(name, lastName, age) VALUES (?, ?, ?)")) {
 
+            connection.setAutoCommit(false);
             st.setString(1, name);
             st.setString(2, lastName);
             st.setByte(3, age);
             st.executeUpdate();
+            connection.commit();
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            e.printStackTrace();
+            try {
+                connection.rollback();
+            } catch (SQLException r) {
+                r.printStackTrace();
+            }
         }
     }
 
+    @Override
     public void removeUserById(long id) {
         try (PreparedStatement st = connection.prepareStatement("DELETE FROM users WHERE id = ?")) {
+            connection.setAutoCommit(false);
             st.setLong(1, id);
             st.executeUpdate();
+            connection.commit();
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            e.printStackTrace();
+            try {
+                connection.rollback();
+            } catch (SQLException r) {
+                r.printStackTrace();
+            }
         }
     }
 
+    @Override
     public List<User> getAllUsers() {
         List<User> l = new ArrayList<>();
 
@@ -79,15 +86,18 @@ public class UserDaoJDBCImpl implements UserDao {
             }
             return l;
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            e.printStackTrace();
         }
+
+        return null;
     }
 
+    @Override
     public void cleanUsersTable() {
         try (Statement st = connection.createStatement()) {
             st.executeUpdate("TRUNCATE TABLE users");
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            e.printStackTrace();
         }
     }
 }

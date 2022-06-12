@@ -9,7 +9,17 @@ public class Util {
     private static final String DB_USERNAME = "hdr";
     private static final String DB_PASSWORD = "hdrUser1";
 
-    public static Connection getConnection() throws SQLException {
-        return DriverManager.getConnection(DB_URL, DB_USERNAME, DB_PASSWORD);
+    private static Connection connection = null;
+
+    static {
+        try {
+            connection = DriverManager.getConnection(DB_URL, DB_USERNAME, DB_PASSWORD);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static Connection getConnection() {
+        return connection;
     }
 }
