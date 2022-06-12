@@ -42,7 +42,7 @@ public class UserDaoJDBCImpl implements UserDao {
                 sta.execute("DROP TABLE users");
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
     }
 
